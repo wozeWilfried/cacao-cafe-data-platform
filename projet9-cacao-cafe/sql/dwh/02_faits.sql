@@ -58,6 +58,7 @@ CREATE TABLE IF NOT EXISTS dwh.fait_qualite_lot (
     grade          VARCHAR(10),
     decision       VARCHAR(10),
     observation    TEXT,
+    delai_analyse_jours INT,
     est_supprime   BOOLEAN NOT NULL DEFAULT FALSE,
     etl_run_id     BIGINT,
     maj_le         TIMESTAMPTZ NOT NULL DEFAULT now()
@@ -75,6 +76,8 @@ CREATE TABLE IF NOT EXISTS dwh.fait_transport (
     distance_km       NUMERIC(10,2),
     duree_min         INT,
     nb_pings          INT,
+    poids_depart_kg   NUMERIC(12,2),
+    poids_arrivee_kg  NUMERIC(12,2),
     pertes_kg         NUMERIC(10,2),
     est_supprime      BOOLEAN NOT NULL DEFAULT FALSE,
     etl_run_id        BIGINT,

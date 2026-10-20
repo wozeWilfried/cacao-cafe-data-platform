@@ -23,7 +23,22 @@ appellent tous les mêmes fonctions de `etl/pipeline.py`.
 | C · Événement base | `scripts/ecouteur_cdc.py` + `pg_notify` | LISTEN `livraison_changee` |
 
 Airflow démarre ces DAGs ; en local sans Airflow, `etl/pipeline.py` expose les
-mêmes fonctions en CLI.
+mêmes fonctions en CLI (`--source livraisons|paiements|qualite|prix|export|intrants|trafic|transport|tous`).
+
+## Faits chargés
+
+Les 8 faits sont alimentés par l'ETL (dimensions résolues avant les faits) :
+
+| Fait | Source | Comptage (dev, SCALE=0.01) |
+|---|---|---|
+| fait_livraison | `coop.livraison` + CDC | 315 800 |
+| fait_paiement | `coop.paiement` / JSON inbox | 280 026 |
+| fait_qualite_lot | `coop.lot_qualite` | 150 000 |
+| fait_transport | `coop.transport_ping` (agrégé) | 5 000 |
+| fait_export | `coop.contrat` | 600 |
+| fait_intrants | `coop.intrant_distribution` | 40 000 |
+| fait_prix_marche | `coop.prix_marche` (FCFA à la date) | 936 |
+| fait_trafic_port | `coop.trafic_port` | 4 000 |
 
 ## Reprise sur incident — cinq garanties
 

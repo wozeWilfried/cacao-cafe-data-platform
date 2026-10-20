@@ -82,6 +82,12 @@ completed:
   - "DAG Airflow — planification nocturne (mécanisme A)"
   - "DAG Airflow — capteur de fichier inbox (mécanisme B)"
   - "(Option) Déclencheur de base + pg_notify (mécanisme C)"
+  - "Page 1 · Synthèse — indicateurs 1 à 5"
+  - "Page 2 · Production et collecte — indicateurs 6 à 10"
+  - "Page 3 · Qualité — indicateurs 11 à 15"
+  - "Page 4 · Prix et finances — indicateurs 16 à 20"
+  - "Page 5 · Logistique et export — indicateurs 21 à 25"
+  - "Indicateur d'actualité : date du dernier chargement"
 
 # -----------------------------------------------------------------------------
 # ISSUES

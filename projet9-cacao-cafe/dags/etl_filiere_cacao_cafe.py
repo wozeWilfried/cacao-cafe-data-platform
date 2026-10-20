@@ -16,7 +16,17 @@ from datetime import datetime, timedelta
 from airflow import DAG
 from airflow.operators.python import PythonOperator
 
-from etl.pipeline import etl_referentiels, etl_livraisons
+from etl.pipeline import (
+    etl_referentiels,
+    etl_livraisons,
+    etl_qualite,
+    etl_prix,
+    etl_export,
+    etl_intrants,
+    etl_trafic,
+    etl_transport,
+    etl_paiements,
+)
 from etl.common.db import dwh_conn
 
 
@@ -29,6 +39,18 @@ def _referentiels(**context):
 def _livraisons_incr(**context):
     with dwh_conn(autocommit=True) as conn:
         run = etl_livraisons(conn, mode="INCR")
+    return run.compteurs
+
+
+def _charger_faits(**context):
+    with dwh_conn(autocommit=True) as conn:
+        etl_qualite(conn)
+        etl_prix(conn)
+        etl_export(conn)
+        etl_intrants(conn)
+        etl_trafic(conn)
+        etl_transport(conn)
+        run = etl_paiements(conn)
     return run.compteurs
 
 
@@ -53,6 +75,7 @@ with DAG(
 ) as dag:
     t1 = PythonOperator(task_id="charger_referentiels", python_callable=_referentiels)
     t2 = PythonOperator(task_id="extraire_livraisons", python_callable=_livraisons_incr)
-    t3 = PythonOperator(task_id="calcul_ml_nlp", python_callable=_calcul_ml_nlp)
+    t3 = PythonOperator(task_id="charger_autres_faits", python_callable=_charger_faits)
+    t4 = PythonOperator(task_id="calcul_ml_nlp", python_callable=_calcul_ml_nlp)
 
-    t1 >> t2 >> t3
+    t1 >> t2 >> t3 >> t4

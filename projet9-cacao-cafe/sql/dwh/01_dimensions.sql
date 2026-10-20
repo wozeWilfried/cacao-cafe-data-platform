@@ -45,7 +45,7 @@ ON CONFLICT (date_sk) DO NOTHING;
 -- ---------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS dwh.dim_produit (
     produit_sk   SERIAL       PRIMARY KEY,
-    code_produit VARCHAR(10)  NOT NULL UNIQUE,   -- CACAO, CAFE
+    code_produit VARCHAR(20)  NOT NULL UNIQUE,   -- CACAO, CAFE, CAFE_ARABICA, CAFE_ROBUSTA
     libelle      VARCHAR(40)  NOT NULL,
     famille      VARCHAR(20),                    -- fève, café vert
     variete      VARCHAR(30)                     -- arabica, robusta (café)

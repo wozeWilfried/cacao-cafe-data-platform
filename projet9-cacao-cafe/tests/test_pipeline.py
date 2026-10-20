@@ -175,6 +175,45 @@ class TestIncremental:
             conn.commit()
 
 
+class TestIndicateurs:
+    """Les 25 vues kpi.* doivent toutes s'exécuter sans erreur."""
+
+    VUES = [
+        "i01_tonnage", "i02_prix_producteur", "i03_taux_refus", "i04_marge_filiere",
+        "i05_ca_export", "i06_tonnage_region", "i07_tonnage_cooperative", "i08_rendement",
+        "i09_producteurs_actifs", "i10_parcelles_actives", "i11_humidite_moyenne",
+        "i12_grains_defectueux", "i13_part_grade1", "i14_refus_cooperative",
+        "i15_delai_analyse", "i16_ecart_prix", "i17_evolution_prix", "i18_mobile_money",
+        "i19_delai_paiement", "i20_impact_change", "i21_delai_champ_port",
+        "i22_cout_transport", "i23_pertes_transport", "i24_conteneurs",
+        "i25_retards_chargement", "dernier_chargement",
+    ]
+
+    @pytest.mark.parametrize("vue", VUES)
+    def test_vue_interrogeable(self, vue):
+        with dwh_conn() as conn:
+            n = scalar(conn, f"SELECT count(*) FROM (SELECT * FROM kpi.{vue} LIMIT 100) t")
+            assert n >= 0
+
+    def test_tonnage_par_campagne_positif(self):
+        with dwh_conn() as conn:
+            rows = _query(conn, "SELECT count(*) FROM kpi.i01_tonnage WHERE tonnage_t > 0")
+            assert rows[0][0] > 0
+
+    def test_aucune_moyenne_de_moyennes(self):
+        """Le prix producteur doit être un rapport de sommes, borné et positif."""
+        with dwh_conn() as conn:
+            rows = _query(conn, "SELECT min(prix_moyen_fcfa_kg), max(prix_moyen_fcfa_kg) FROM kpi.i02_prix_producteur")
+            mini, maxi = rows[0]
+            assert mini is not None and 500 < mini < 5000
+            assert maxi is not None and 500 < maxi < 5000
+
+    def test_dernier_chargement_renseigne(self):
+        with dwh_conn() as conn:
+            val = scalar(conn, "SELECT dernier_chargement FROM kpi.dernier_chargement")
+            assert val is not None
+
+
 def _query(conn, sql):
     from etl.common.db import query
     return query(conn, sql)

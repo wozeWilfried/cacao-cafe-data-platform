@@ -54,14 +54,15 @@ def upsert_qualite(conn, lignes: list[tuple]) -> int:
     return _upsert(conn, "fait_qualite_lot",
         ["lot_bk", "date_sk", "cooperative_sk", "produit_sk", "defaut_sk",
          "humidite_pct", "grains_defectueux_pct", "nb_grains_comptes", "grade",
-         "decision", "observation", "etl_run_id"],
+         "decision", "observation", "delai_analyse_jours", "etl_run_id"],
         "lot_bk", lignes)
 
 
 def upsert_transport(conn, lignes: list[tuple]) -> int:
     return _upsert(conn, "fait_transport",
         ["trajet_bk", "date_sk", "cooperative_sk", "transporteur_sk", "port_sk",
-         "distance_km", "duree_min", "nb_pings", "pertes_kg", "etl_run_id"],
+         "distance_km", "duree_min", "nb_pings", "poids_depart_kg", "poids_arrivee_kg",
+         "pertes_kg", "etl_run_id"],
         "trajet_bk", lignes)
 
 

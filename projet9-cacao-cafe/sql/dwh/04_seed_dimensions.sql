@@ -4,10 +4,12 @@
 -- =============================================================================
 SET search_path = dwh, public;
 
--- Produits : CACAO et CAFE.
+-- Produits : cacao + cafés (dont séries Pink Sheet Arabica/Robusta).
 INSERT INTO dwh.dim_produit (code_produit, libelle, famille, variete) VALUES
-    ('CACAO', 'Cacao (fèves)',      'fève',      NULL),
-    ('CAFE',  'Café vert',          'café vert', NULL)
+    ('CACAO',        'Cacao (fèves)', 'fève',      NULL),
+    ('CAFE',         'Café vert',     'café vert', NULL),
+    ('CAFE_ARABICA', 'Café Arabica',  'café vert', 'arabica'),
+    ('CAFE_ROBUSTA', 'Café Robusta',  'café vert', 'robusta')
 ON CONFLICT (code_produit) DO UPDATE SET libelle = EXCLUDED.libelle;
 
 -- Canaux de paiement.
@@ -34,14 +36,18 @@ INSERT INTO dwh.dim_defaut (code_defaut, libelle, famille, gravite) VALUES
     ('CORPS_ETRANGERS', 'Corps étrangers',          'matiere',        'MAJEUR')
 ON CONFLICT (code_defaut) DO UPDATE SET libelle = EXCLUDED.libelle;
 
--- Intrants agricoles.
+-- Intrants agricoles (codes alignés sur generate/intrants.py).
 INSERT INTO dwh.dim_intrant (code_intrant, nom, famille, unite) VALUES
-    ('ENGRAIS_NPK', 'Engrais NPK 20-10-10', 'engrais',          'kg'),
-    ('ENGRAIS_UREE','Urée 46%',             'engrais',          'kg'),
-    ('FONGICIDE',   'Fongicide cuivre',     'phytosanitaire',   'L'),
-    ('INSECTICIDE', 'Insecticide à base de pyrèthre', 'phytosanitaire', 'L'),
-    ('SEMENCE',     'Semences sélectionnées','semence',         'kg'),
-    ('SAC_JUTE',    'Sacs de jute',         'emballage',        'unite')
+    ('INT-001', 'Engrais NPK 20-10-10 (sac 50 kg)', 'engrais', 'sac'),
+    ('INT-002', 'Urée 46% (sac 50 kg)',             'engrais', 'sac'),
+    ('INT-003', 'Sulfate de potasse (sac 50 kg)',   'engrais', 'sac'),
+    ('INT-004', 'Fongicide cuprique (L)',           'phytosanitaire', 'litre'),
+    ('INT-005', 'Insecticide (L)',                  'phytosanitaire', 'litre'),
+    ('INT-006', 'Machette',                         'materiel', 'unité'),
+    ('INT-007', 'Sécateur',                         'materiel', 'unité'),
+    ('INT-008', 'Sac de jute (60 kg)',              'emballage', 'unité'),
+    ('INT-009', 'Semence améliorée cacao (kg)',     'semence', 'kg'),
+    ('INT-010', 'Semence améliorée café (kg)',      'semence', 'kg')
 ON CONFLICT (code_intrant) DO UPDATE SET nom = EXCLUDED.nom;
 
 -- Catégories de transporteurs (bk générique pour rattachement).
