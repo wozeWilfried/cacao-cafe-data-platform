@@ -88,6 +88,12 @@ completed:
   - "Page 4 · Prix et finances — indicateurs 16 à 20"
   - "Page 5 · Logistique et export — indicateurs 21 à 25"
   - "Indicateur d'actualité : date du dernier chargement"
+  - "ML1 · Prévision des tonnages par région et campagne"
+  - "ML2 · Prédiction du rejet d'un lot"
+  - "ML3 · Prévision du prix mondial et simulation de marge"
+  - "NLP1 · Classification des observations qualité par défaut"
+  - "NLP2 · Extraction des clauses, dates et volumes des contrats"
+  - "Tables ml.* et nlp.* + métriques d'évaluation"
 
 # -----------------------------------------------------------------------------
 # ISSUES
