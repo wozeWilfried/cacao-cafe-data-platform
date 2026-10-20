@@ -174,9 +174,14 @@ def etl_livraisons(conn, mode: str = "FULL", echouer: bool = False) -> journal.R
 
     where, params = "", ()
     wm = journal.lire_watermark(conn, "livraison")
+    # RECOUVREMENT de 5 minutes : on relit un peu avant le filigrane pour ne pas
+    # manquer une ligne dont le commit a suivi notre lecture. L'upsert rend le
+    # rejeu inoffensif.
+    depuis = None
     if mode == "INCR" and wm:
-        where = "WHERE updated_at > %s"
-        params = (wm,)
+        depuis = _moins_5min(wm)
+        where = "WHERE updated_at >= %s"
+        params = (depuis,)
     with source_conn() as src:
         rows = query(
             src,
@@ -185,6 +190,17 @@ def etl_livraisons(conn, mode: str = "FULL", echouer: bool = False) -> journal.R
                 FROM coop.livraison {where} ORDER BY updated_at""",
             params,
         )
+        # SUPPRESSIONS : le journal CDC liste les lignes disparues depuis le
+        # filigrane (qu'une lecture par updated_at ne verrait pas).
+        supprimes = []
+        if mode == "INCR" and wm:
+            rows_suppr = query(
+                src,
+                """SELECT DISTINCT cle_metier FROM coop.cdc_journal
+                   WHERE table_nom = 'livraison' AND operation = 'D' AND horodatage >= %s""",
+                (depuis,),
+            )
+            supprimes = [r[0] for r in rows_suppr]
     lignes = [
         {
             "livraison_id": str(r[0]), "producteur_id": r[1], "cooperative_id": r[2],
@@ -252,6 +268,11 @@ def etl_livraisons(conn, mode: str = "FULL", echouer: bool = False) -> journal.R
             insc = fts.upsert_livraison(conn, fait_rows)
             run.ajouter("inserees", insc)
 
+            # SUPPRESSIONS logiques : les clés disparues passent est_supprime = TRUE.
+            if supprimes:
+                maj_suppr = fts.supprimer_livraisons(conn, supprimes, run.run_id)
+                run.ajouter("supprimees", maj_suppr)
+
             # JOURNALISER — filigrane avancé DANS la transaction de chargement.
             wm_apres = max((l["updated_at"] for l in lignes), default=wm)
             if wm_apres:
@@ -267,6 +288,19 @@ def etl_livraisons(conn, mode: str = "FULL", echouer: bool = False) -> journal.R
 # -----------------------------------------------------------------------------
 # Helpers de conversion
 # -----------------------------------------------------------------------------
+def _moins_5min(watermark_iso: str) -> str:
+    """Recule un filigrane ISO de 5 minutes (recouvrement)."""
+    from datetime import datetime, timedelta, timezone
+
+    try:
+        dt = datetime.fromisoformat(watermark_iso.replace("Z", "+00:00"))
+    except ValueError:
+        return watermark_iso
+    if dt.tzinfo is None:
+        dt = dt.replace(tzinfo=timezone.utc)
+    return (dt - timedelta(minutes=5)).isoformat()
+
+
 def _int(v):
     try:
         return int(v) if v not in (None, "") else None
@@ -299,13 +333,75 @@ def _cache_geo(conn, table: str, sk: str, bk: str) -> dict:
     return _cache_bk(conn, table, sk, bk)
 
 
+# =============================================================================
+# SOURCE : paiements (un fichier JSON par jour dans data/inbox/paiements)
+# =============================================================================
+def etl_paiements(conn, mode: str = "INCR", declencheur: str = "FICHIER",
+                  echouer: bool = False) -> journal.RunLog:
+    """Traite les fichiers de paiements non encore traités (hachage).
+
+    Chaque fichier est lu, contrôlé (R06 montant > 0, R04 intégrité) puis chargé
+    en upsert ; il est ensuite déplacé vers data/archive et inscrit dans
+    etl.fichier_traite. Un fichier corrigé (hachage différent) est relu.
+    """
+    import csv as _csv  # noqa: F401
+    import json
+
+    fichiers = sorted(PAIEMENTS_DIR.glob(PAIEMENTS_GLOB)) if PAIEMENTS_DIR.exists() else []
+    run = journal.ouvrir_run(conn, "paiement", mode, declencheur=declencheur)
+
+    cache_canal = {r[0]: r[1] for r in query(conn, "SELECT code_canal, canal_sk FROM dwh.dim_canal")}
+    cache_prod = _cache_bk(conn, "dim_producteur", "producteur_sk", "producteur_bk")
+
+    traites = 0
+    for fichier in fichiers:
+        h = _hash(fichier)
+        if journal.fichier_deja_traite(conn, fichier.name, h):
+            continue
+        paquets = json.loads(fichier.read_text(encoding="utf-8"))
+        lignes = paquets if isinstance(paquets, list) else paquets.get("paiements", [])
+        run.ajouter("lues", len(lignes))
+
+        with conn.transaction():
+            fait_rows = []
+            for p in lignes:
+                if regles.r06_paiement(p):
+                    journal.rejeter(conn, run, p.get("paiement_id"), "R06", p)
+                    continue
+                date_iso = str(p.get("horodatage") or p.get("date"))[:10]
+                date_sk = int(date_iso.replace("-", "")) if date_iso else None
+                fait_rows.append((
+                    str(p.get("paiement_id")), date_sk,
+                    cache_canal.get(p.get("operateur")),
+                    cache_prod.get(p.get("producteur_id")), None,
+                    _int(p.get("montant_fcfa")), _int(p.get("frais_fcfa")) or 0,
+                    _int(p.get("delai_jours")), p.get("statut"), run.run_id,
+                ))
+            n = fts.upsert_paiement(conn, fait_rows)
+            run.ajouter("inserees", n)
+            journal.marquer_fichier(conn, fichier.name, h, run.run_id, "SUCCESS")
+            traites += 1
+
+        _deplacer(fichier, ARCHIVE_DIR)
+
+    journal.fermer_run(conn, run)
+    return run
+
+
+def traiter_paiements(declencheur: str = "FICHIER", **_) -> dict:
+    """Point d'entrée utilisé par le DAG Airflow (mécanisme B)."""
+    with dwh_conn(autocommit=True) as conn:
+        run = etl_paiements(conn, declencheur=declencheur)
+    return run.compteurs
+
+
 # -----------------------------------------------------------------------------
 # CLI
 # -----------------------------------------------------------------------------
 def main() -> int:
     parser = argparse.ArgumentParser(description="ETL Projet 9 — orchestration des sources.")
     parser.add_argument("--source", default="referentiels",
-                        choices=["referentiels", "livraisons"])
+                        choices=["referentiels", "livraisons", "paiements"])
     parser.add_argument("--snapshot", default="2022-10-01")
     parser.add_argument("--mode", default="FULL", choices=["FULL", "INCR"])
     parser.add_argument("--panne", action="store_true", help="simuler un échec (run 4)")
@@ -314,6 +410,8 @@ def main() -> int:
     with dwh_conn(autocommit=True) as conn:
         if args.source == "referentiels":
             run = etl_referentiels(conn, args.snapshot, echouer=args.panne)
+        elif args.source == "paiements":
+            run = etl_paiements(conn, mode=args.mode, echouer=args.panne)
         else:
             run = etl_livraisons(conn, mode=args.mode, echouer=args.panne)
         print(f"run {run.run_id} ({run.source_name}) — {run.compteurs}")

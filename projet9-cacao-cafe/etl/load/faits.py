@@ -29,6 +29,20 @@ def upsert_livraison(conn, lignes: list[tuple]) -> int:
         "livraison_bk", lignes)
 
 
+def supprimer_livraisons(conn, cles: list[str], run_id: int) -> int:
+    """Suppression logique : est_supprime = TRUE (pas de destruction de ligne)."""
+    if not cles:
+        return 0
+    with conn.cursor() as cur:
+        cur.execute(
+            """UPDATE dwh.fait_livraison
+               SET est_supprime = TRUE, etl_run_id = %s, maj_le = now()
+               WHERE livraison_bk = ANY(%s) AND NOT est_supprime""",
+            (run_id, cles),
+        )
+        return cur.rowcount
+
+
 def upsert_paiement(conn, lignes: list[tuple]) -> int:
     return _upsert(conn, "fait_paiement",
         ["paiement_bk", "date_sk", "canal_sk", "producteur_sk", "cooperative_sk",

@@ -76,6 +76,12 @@ completed:
   - "Journalisation etl.run_log, watermark et fichier_traite"
   - "Reprise sur incident (transaction, filigrane, idempotence)"
   - "Historisation SCD2 de producteur et coopérative"
+  - "Extraction incrémentale par filigrane (livraison.updated_at)"
+  - "Détection des modifications (hachage) et des suppressions (journal CDC)"
+  - "Scénario de démonstration runs 0→4 et comptages attendus"
+  - "DAG Airflow — planification nocturne (mécanisme A)"
+  - "DAG Airflow — capteur de fichier inbox (mécanisme B)"
+  - "(Option) Déclencheur de base + pg_notify (mécanisme C)"
 
 # -----------------------------------------------------------------------------
 # ISSUES

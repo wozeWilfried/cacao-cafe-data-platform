@@ -144,6 +144,37 @@ class TestDwh:
             assert statuts <= {"RUNNING", "SUCCESS", "FAILED"}
 
 
+class TestIncremental:
+    def test_recouvrement_5_minutes(self):
+        from etl.pipeline import _moins_5min
+        recule = _moins_5min("2026-10-20T06:07:13.245414+00:00")
+        assert recule.startswith("2026-10-20T06:02:13")
+
+    def test_suppression_logique_non_destructive(self):
+        """Une suppression met est_supprime=TRUE sans détruire la ligne."""
+        with dwh_conn() as conn:
+            bk = "TEST-SUPPR-1"
+            fts.upsert_livraison(conn, [(bk, 20231001, 1, None, None, None, None, 10.0, 9.0, 1, 0)])
+            fts.supprimer_livraisons(conn, [bk], 0)
+            row = scalar(conn, "SELECT est_supprime FROM dwh.fait_livraison WHERE livraison_bk = %s", (bk,))
+            assert row is True
+            with conn.cursor() as cur:
+                cur.execute("DELETE FROM dwh.fait_livraison WHERE livraison_bk = %s", (bk,))
+            conn.commit()
+
+    def test_paiement_upsert_idempotent(self):
+        with dwh_conn() as conn:
+            n1 = scalar(conn, "SELECT count(*) FROM dwh.fait_paiement")
+            rows = [("TEST-PAY-1", 20231001, 1, None, None, 5000, 0, 0, "PAYE", 0)]
+            fts.upsert_paiement(conn, rows)
+            fts.upsert_paiement(conn, rows)
+            n2 = scalar(conn, "SELECT count(*) FROM dwh.fait_paiement")
+            assert n2 == n1 + 1
+            with conn.cursor() as cur:
+                cur.execute("DELETE FROM dwh.fait_paiement WHERE paiement_bk = 'TEST-PAY-1'")
+            conn.commit()
+
+
 def _query(conn, sql):
     from etl.common.db import query
     return query(conn, sql)
