@@ -66,8 +66,53 @@ CLAUSES = [
     "La qualite sera verifiee selon la methode de coupe ISO 1114.",
     "Le vendeur fournira un certificat d'origine et un certificat phytosanitaire.",
     "En cas de non-conformite, l'acheteur peut refuser le lot sans indemnite.",
-    "Le fret maritime est a la charge de l'acheteur (incoterm FOB).",
 ]
+
+# Gabarits de clauses d'engagement rédigees en texte libre : la vérité terrain
+# (date limite, tonnage, incoterm, port, pénalité) reste dans les balises
+# structurées du XML, ce qui permet de mesurer objectivement le NLP2.
+MOIS_FR = ["janvier", "fevrier", "mars", "avril", "mai", "juin", "juillet",
+           "aout", "septembre", "octobre", "novembre", "decembre"]
+
+GABARIT_EXPEDITION = [
+    "Expedition au plus tard le {j} {mois} {a}.",
+    "Le chargement devra etre acheve avant le {j} {mois} {a} inclus.",
+    "Embarquement prevu au plus tard le {j}/{m}/{a}.",
+    "Date limite d'expedition fixee au {j} {mois} {a}.",
+]
+GABARIT_VOLUME = [
+    "Volume contractuel : {v} tonnes.",
+    "Le contrat porte sur {v} tonnes nettes.",
+    "Quantite ferme de {v} t, tolerance +/- 2%.",
+    "Livraison de {v} tonnes reparties en plusieurs lots.",
+]
+GABARIT_INCOTERM_PORT = [
+    "Conditions {inc} {port}.",
+    "Livraison {inc}, port de chargement {port}.",
+    "Incoterm {inc} au depart de {port}.",
+    "Vente {inc} {port} selon Incoterms 2020.",
+]
+GABARIT_PENALITE = [
+    "Penalite de {p} % du montant du contrat par jour de retard.",
+    "En cas de retard, une penalite de {p}% par jour sera appliquee.",
+    "Tout jour de retard entraine une penalite de {p} % payable par le vendeur.",
+]
+
+
+def _clause_engagements(record, rng) -> str:
+    """Texte libre reprenant les engagements (vérité terrain en balises)."""
+    fin = dt.date.fromisoformat(record["date_fin"])
+    volume = f"{record['volume_t']:.0f}".replace("\u202f", "")
+    gab = [
+        rng.choice(GABARIT_EXPEDITION).format(
+            j=fin.day, mois=MOIS_FR[fin.month - 1], m=f"{fin.month:02d}", a=fin.year),
+        rng.choice(GABARIT_VOLUME).format(v=volume),
+        rng.choice(GABARIT_INCOTERM_PORT).format(
+            inc=record["incoterm"], port=record["port_chargement"]),
+    ]
+    if rng.random() < 0.7:
+        gab.append(rng.choice(GABARIT_PENALITE).format(p=rng.choice(["0,5", "0,25", "1", "0,75"])))
+    return " ".join(gab)
 
 XSD = """<?xml version="1.0" encoding="UTF-8"?>
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
@@ -167,8 +212,9 @@ def generer(scale: float, seed: int, snapshot: str, out_dir=None):
             "port_decharge": rng.choice(["Rotterdam", "Anvers", "Hambourg", "Valence", "New York"]),
             "statut": statut,
             "avenant": avenant,
-            "clauses": " ".join(rng.sample(CLAUSES, rng.randint(2, 4))),
+            "clauses": " ".join(rng.sample(CLAUSES, rng.randint(1, 3))),
         }
+        record["clauses"] = _clause_engagements(record, rng) + " " + record["clauses"]
         (out_dir / f"contrat_{i:05d}.xml").write_text(_xml(record), encoding="utf-8")
         index.append({"fichier": f"contrat_{i:05d}.xml", **record})
 
