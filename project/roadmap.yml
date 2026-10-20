@@ -1,0 +1,521 @@
+# =============================================================================
+# Roadmap du Projet 9 — Filière cacao & café
+# Source de vérité pour les labels, jalons (milestones) et issues GitHub.
+# Ce fichier est lu par scripts/sync_github.py (idempotent).
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# LABELS  (convention : namespace:nom)
+# -----------------------------------------------------------------------------
+labels:
+  # Type de travail
+  - { name: "type:feature", color: "0e8a16", description: "Nouvelle fonctionnalité ou livrable" }
+  - { name: "type:chore",   color: "c5def5", description: "Tâche technique / outillage" }
+  - { name: "type:bug",     color: "d73a4a", description: "Anomalie à corriger" }
+  - { name: "type:docs",    color: "0075ca", description: "Documentation / dossier de conception" }
+  - { name: "type:test",    color: "fbca04", description: "Tests et qualité logicielle" }
+  - { name: "type:spike",   color: "5319e7", description: "Exploration / vérification technique" }
+
+  # Domaine fonctionnel / couche
+  - { name: "area:sources",       color: "1d76db", description: "Sources publiques et API" }
+  - { name: "area:generation",    color: "bfd4f2", description: "Génération des données" }
+  - { name: "area:dwh",           color: "0e8a16", description: "Modélisation de l'entrepôt" }
+  - { name: "area:etl",           color: "f9d0c4", description: "Pipeline ETL" }
+  - { name: "area:quality",       color: "d4c5f9", description: "Règles de qualité et rejets" }
+  - { name: "area:orchestration", color: "c2e0c6", description: "Airflow et déclenchement" }
+  - { name: "area:ml",            color: "5319e7", description: "Machine Learning" }
+  - { name: "area:nlp",           color: "a2eeef", description: "Traitement du langage" }
+  - { name: "area:bi",            color: "fbca04", description: "Tableau de bord" }
+  - { name: "area:docs",          color: "0075ca", description: "Documentation" }
+  - { name: "area:infra",         color: "ededed", description: "Docker, environnements, CI" }
+
+  # Priorité
+  - { name: "priority:p0", color: "b60205", description: "Socle indispensable" }
+  - { name: "priority:p1", color: "d93f0b", description: "Solide / attendu" }
+  - { name: "priority:p2", color: "fbca04", description: "Remarquable / option" }
+
+  # Rôle porteur (équipe de 4)
+  - { name: "role:A-sources",       color: "c2e0c6", description: "A · Sources et génération" }
+  - { name: "role:B-dwh-etl",       color: "f9d0c4", description: "B · Modèle et ETL" }
+  - { name: "role:C-orchestration", color: "bfd4f2", description: "C · Orchestration et qualité" }
+  - { name: "role:D-ml-bi",         color: "d4c5f9", description: "D · ML, NLP et BI" }
+
+# -----------------------------------------------------------------------------
+# JALONS  (milestones = phases du projet)
+# -----------------------------------------------------------------------------
+milestones:
+  - { key: m0, title: "M0 · Cadrage et environnement", description: "Dépôt propre, conventions, Docker, environnement Python, cadrage validé." }
+  - { key: m1, title: "M1 · Sources de données",       description: "15 sources lisibles (7 publiques + 8 générées), anomalies injectées, catalogue." }
+  - { key: m2, title: "M2 · Entrepôt modélisé",        description: "Dimensions, 9 faits, dim_date, SCD2, matrice et grains justifiés." }
+  - { key: m3, title: "M3 · ETL et qualité",           description: "Staging, 10 règles de qualité, journal, rejets, reprise sur incident." }
+  - { key: m4, title: "M4 · Incrémental et déclenchement", description: "Filigrane, hachage, suppressions, DAGs Airflow (planification + fichier)." }
+  - { key: m5, title: "M5 · 25 indicateurs",           description: "25 indicateurs définis et vérifiés par requête SQL, répartis en 5 pages." }
+  - { key: m6, title: "M6 · Machine Learning et NLP",  description: "3 ML + 2 NLP, sorties dans ml/nlp avec métriques d'évaluation." }
+  - { key: m7, title: "M7 · Tableau de bord",          description: "5 pages, filtres communs, navigation, fraîcheur des données." }
+  - { key: m8, title: "M8 · Dossier, tests et soutenance", description: "Dossier de conception, tests automatisés, support et répétition." }
+
+# -----------------------------------------------------------------------------
+# TERMINÉ  (issues à fermer ; le script passe leur état à « closed »)
+# Ajouter ici le titre EXACT d'une issue achevée puis relancer le script.
+# -----------------------------------------------------------------------------
+completed:
+  - "Dépôt, arborescence et conventions (labels, templates, roadmap)"
+  - "Générateur des référentiels : coopératives, producteurs, parcelles"
+  - "Générateur des livraisons (300 000) avec saisonnalité"
+  - "Générateur du contrôle qualité des lots (150 000) + observations texte étiquetées"
+  - "Générateur des paiements Mobile Money (280 000, JSON par jour)"
+  - "Générateurs complémentaires : contrats XML (+XSD), intrants Excel, trafic portuaire CSV"
+  - "Collecte et cache des 7 sources publiques + fichiers de repli"
+
+# -----------------------------------------------------------------------------
+# ISSUES
+# body : Markdown. DoD = Definition of Done (critères d'acceptation).
+# -----------------------------------------------------------------------------
+issues:
+  # ---------------------------- M0 -------------------------------------------
+  - title: "Dépôt, arborescence et conventions (labels, templates, roadmap)"
+    milestone: m0
+    labels: ["type:chore", "area:infra", "priority:p0"]
+    body: |
+      **Objectif** — Poser la structure du dépôt et les conventions de collaboration.
+
+      **Tâches**
+      - [ ] Arborescence : `generate/ data/ sql/ etl/ dags/ ml/ dashboards/ tests/ docs/`
+      - [ ] `project/roadmap.yml` + `scripts/sync_github.py`
+      - [ ] `.github/ISSUE_TEMPLATE` et `PULL_REQUEST_TEMPLATE.md`
+      - [ ] `.gitignore` (secrets, données volumineuses, caches)
+
+      **DoD** — `sync_github.py --dry-run` s'exécute sans erreur ; aucun secret dans le dépôt.
+
+  - title: "Environnement Docker : 2 PostgreSQL + Metabase + utilisateur lecture seule"
+    milestone: m0
+    labels: ["type:chore", "area:infra", "priority:p0"]
+    body: |
+      **Objectif** — Rendre l'extraction réelle : base source distincte de l'entrepôt.
+
+      **Tâches**
+      - [ ] `docker-compose.yml` : `pg_source` (5433), `pg_dwh` (5434), `metabase` (3000)
+      - [ ] Schémas `stg, dwh, etl, ml, nlp` créés à l'init
+      - [ ] Rôle `bi_reader` en lecture seule pour Metabase
+      - [ ] `.env.example` documenté, `.env` ignoré par Git
+
+      **DoD** — `docker compose up -d` puis `bi_reader` peut lire les schémas mais pas écrire.
+
+  - title: "Environnement Python versionné (3.12) et requirements"
+    milestone: m0
+    labels: ["type:chore", "area:infra", "priority:p0"]
+    body: |
+      **Objectif** — Reproductibilité de l'exécution locale.
+
+      **Tâches**
+      - [ ] `python3.12 -m venv .venv`
+      - [ ] `requirements.txt` (pandas, SQLAlchemy, psycopg, Faker, scikit-learn, statsmodels, Prophet, spaCy)
+      - [ ] `python -m spacy download fr_core_news_md`
+
+      **DoD** — `pip install -r requirements.txt` réussit et `import pandas, sklearn, spacy` fonctionne.
+
+  - title: "Dossier de conception — cadrage, hypothèses et chaîne de valeur"
+    milestone: m0
+    labels: ["type:docs", "area:docs", "priority:p0"]
+    body: |
+      **Objectif** — Fixer le contexte validé par l'enseignant.
+
+      **Tâches**
+      - [ ] Contexte : Cameroun, cacao (Centre/Sud/SO/Est), café (Ouest/NO/Littoral), ports Douala/Kribi
+      - [ ] Hypothèses : FCFA (XAF), campagne oct→sept, 4 campagnes 2022/23 → 2025/26
+      - [ ] Schéma de la chaîne de valeur (6 maillons)
+      - [ ] Tableau des 6 questions de la direction → pages → indicateurs/IA
+
+      **DoD** — Document relu et hypothèses validées.
+
+  # ---------------------------- M1 -------------------------------------------
+  - title: "Générateur des référentiels : coopératives, producteurs, parcelles"
+    milestone: m1
+    labels: ["type:feature", "area:generation", "role:A-sources", "priority:p0"]
+    body: |
+      **Objectif** — Produire les référentiels qui alimentent toutes les autres sources.
+
+      **Tâches**
+      - [ ] `generate/referentiels.py` — 25 000 producteurs, 35 000 parcelles, ~120 coopératives
+      - [ ] Graine fixe (`--seed 42`) et facteur `--scale` (0.01 → 1.0)
+      - [ ] `sql/source/02_tables.sql` : schéma `coop`
+      - [ ] 4 instantanés GeoJSON pour le SCD2 (changements coop/certif, radiations)
+
+      **DoD** — Rejouer le générateur produit exactement le même jeu ; clés cohérentes.
+
+  - title: "Générateur des livraisons (300 000) avec saisonnalité"
+    milestone: m1
+    labels: ["type:feature", "area:generation", "role:A-sources", "priority:p0"]
+    body: |
+      **Objectif** — Porter le volume principal de la collecte.
+
+      **Tâches**
+      - [ ] Saisonnalité : pic oct-déc, moyen avr-juin, creux le reste
+      - [ ] `poids_net` lognormal borné ; `poids_brut ≥ poids_net`
+      - [ ] Cohérence `producteur_id`, `cooperative_id`, `parcelle_id`
+      - [ ] `updated_at` pour le filigrane
+
+      **DoD** — 300 000 lignes en base source, distribution vérifiée.
+
+  - title: "Générateur du contrôle qualité des lots (150 000) + observations texte étiquetées"
+    milestone: m1
+    labels: ["type:feature", "area:generation", "area:nlp", "role:A-sources", "priority:p0"]
+    body: |
+      **Objectif** — Mesures qualité probabilistes et corpus NLP annoté.
+
+      **Tâches**
+      - [ ] `humidite_pct` (Beta ~7,5 %), `grains_defectueux_pct`, `nb_grains_comptes`
+      - [ ] Rejet **probabiliste** (pas de règle exacte) ; `grade` dérivé de la décision
+      - [ ] Observation texte : 40–60 gabarits, fautes de frappe, 10–15 % multi-défauts
+      - [ ] Étiquette réelle conservée (≥ 3 000 pour l'entraînement NLP)
+
+      **DoD** — Rejet ~5 %, distribution non séparable trivialement.
+
+  - title: "Générateur des paiements Mobile Money (280 000, JSON par jour)"
+    milestone: m1
+    labels: ["type:feature", "area:generation", "role:A-sources", "priority:p0"]
+    body: |
+      **Objectif** — Alimenter les indicateurs de prix, délai et canaux.
+
+      **Tâches**
+      - [ ] Un fichier JSON par jour dans `data/inbox/` puis archivage
+      - [ ] `operateur` : MTN_MOMO, ORANGE_MONEY, VIREMENT, ESPECES ; `statut`
+      - [ ] Prix producteur corrélé au prix mondial (55–75 %)
+
+      **DoD** — Chaque `paiement_id` pointe vers une livraison existante (sauf orphelins injectés).
+
+  - title: "Générateur des logs GPS de transport (600 000 pings → trajets)"
+    milestone: m1
+    labels: ["type:feature", "area:generation", "role:A-sources", "priority:p1"]
+    body: |
+      **Objectif** — Porter le reste du volume et alimenter la logistique.
+
+      **Tâches**
+      - [ ] Pings : horodatage, camion, lot, lat/lon, vitesse, événement, poids
+      - [ ] Durée fonction de la distance coopérative→port et de la saison des pluies
+      - [ ] Agrégation en ~25 000 trajets pour `fait_transport`
+
+      **DoD** — Corridors plausibles dans la boîte englobante du Cameroun.
+
+  - title: "Générateurs complémentaires : contrats XML (+XSD), intrants Excel, trafic portuaire CSV"
+    milestone: m1
+    labels: ["type:feature", "area:generation", "role:A-sources", "priority:p1"]
+    body: |
+      **Objectif** — Couvrir les formats XML, Excel et CSV.
+
+      **Tâches**
+      - [ ] Contrats XML valides contre un XSD, clauses en texte libre + champs structurés
+      - [ ] Intrants : un classeur Excel par mois (60 000 lignes)
+      - [ ] Trafic portuaire CSV : escales, attente à quai (90 000)
+
+      **DoD** — Validation XSD OK ; un classeur par mois présent.
+
+  - title: "Collecte et cache des 7 sources publiques + fichiers de repli"
+    milestone: m1
+    labels: ["type:feature", "area:sources", "role:A-sources", "priority:p0"]
+    body: |
+      **Objectif** — Rendre la démonstration indépendante d'Internet.
+
+      **Tâches**
+      - [ ] ICCO, ICO, Pink Sheet, FAOSTAT, NASA POWER, Open-Meteo, Frankfurter
+      - [ ] Cache/fichier de repli dans `data/reference/`
+      - [ ] Homogénéisation : cts/lb → USD/t ; EUR/XAF (655,957)
+
+      **DoD** — ETL capable de tourner hors-ligne grâce aux replis.
+
+  - title: "Injection des anomalies contrôlées (taux connus)"
+    milestone: m1
+    labels: ["type:feature", "area:quality", "role:A-sources", "priority:p0"]
+    body: |
+      **Objectif** — Un ETL sans défaut à nettoyer ne prouve rien.
+
+      **Tâches**
+      - [ ] Doublons 2 % · nulls 1–2 % · aberrantes 0,5 % · dates mixtes 3 %
+      - [ ] FK orphelines 0,3 % · GPS impossibles 0,5 %
+      - [ ] Chaque défaut relié à la règle qui doit le détecter
+
+      **DoD** — « 2 % de doublons détectés, 100 % rejetés » démontrable.
+
+  - title: "Dictionnaire de données et catalogue des sources"
+    milestone: m1
+    labels: ["type:docs", "area:docs", "role:A-sources", "priority:p1"]
+    body: |
+      **Objectif** — Tracer chaque champ, son unité, sa source et sa règle de qualité.
+
+      **DoD** — Un tableau par source : champ, type, unité, obligatoire, règle associée.
+
+  # ---------------------------- M2 -------------------------------------------
+  - title: "DDL des dimensions (Type 1 et 2) et de dim_date"
+    milestone: m2
+    labels: ["type:feature", "area:dwh", "role:B-dwh-etl", "priority:p0"]
+    body: |
+      **Objectif** — Poser le modèle conforme.
+
+      **Tâches**
+      - [ ] 12 dimensions ; `dim_produit`, `dim_geographie`, `dim_canal`, `dim_acheteur`, `dim_port`...
+      - [ ] `dim_date` 2000→2030 avec campagne oct-sept et week-end
+      - [ ] SCD2 sur `dim_producteur` et `dim_cooperative` (index unique de version courante)
+
+      **DoD** — Scripts DDL versionnés rejouables sans erreur.
+
+  - title: "DDL des 9 tables de faits, contraintes et index"
+    milestone: m2
+    labels: ["type:feature", "area:dwh", "role:B-dwh-etl", "priority:p0"]
+    body: |
+      **Objectif** — Matérialiser les processus métier.
+
+      **Tâches**
+      - [ ] `fait_livraison, fait_paiement, fait_qualite_lot, fait_transport, fait_export, fait_prix_marche, fait_meteo, fait_intrants, fait_trafic_port`
+      - [ ] Clé métier unique (upsert idempotent), `est_supprime`, `etl_run_id`, `maj_le`
+      - [ ] Index sur dates et dimensions principales
+
+      **DoD** — Chevauchement partiel des dimensions (constellation) cohérent.
+
+  - title: "Matrice processus × dimensions et justification des grains"
+    milestone: m2
+    labels: ["type:docs", "area:dwh", "role:B-dwh-etl", "priority:p0"]
+    body: |
+      **Objectif** — Justifier chaque grain avant de dessiner une colonne.
+
+      **DoD** — Tableau grains + matrice processus × dimensions dans le dossier.
+
+  - title: "Historisation SCD2 de producteur et coopérative"
+    milestone: m2
+    labels: ["type:feature", "area:dwh", "role:B-dwh-etl", "priority:p0"]
+    body: |
+      **Objectif** — Garder l'historique des changements d'affiliation.
+
+      **Tâches**
+      - [ ] `hash_diff` md5 des attributs suivis
+      - [ ] Fermeture de version `date_fin = date_effet - 1`, `est_courant = FALSE`
+      - [ ] Jointure temporelle des faits sur l'intervalle
+
+      **DoD** — Démontrable au run 2 (changement de coopérative).
+
+  # ---------------------------- M3 -------------------------------------------
+  - title: "Couche de staging (stg.*) avec traçabilité"
+    milestone: m3
+    labels: ["type:feature", "area:etl", "role:B-dwh-etl", "priority:p0"]
+    body: |
+      **Objectif** — Copier les sources telles quelles avant tout contrôle.
+
+      **DoD** — Une table de staging par source avec `run_id` et `charge_le`.
+
+  - title: "10 règles de qualité et table etl.rejet"
+    milestone: m3
+    labels: ["type:feature", "area:quality", "role:C-orchestration", "priority:p0"]
+    body: |
+      **Objectif** — Rejeter proprement et tracer.
+
+      **Tâches**
+      - [ ] R01 doublons · R02 non-nullité · R03 domaines · R04 intégrité · R05 dates
+      - [ ] R06 paiement · R07 cohérence temporelle · R08 GPS · R09 XSD · R10 texte vide
+
+      **DoD** — `etl.rejet` contient règle, clé et valeur JSON par ligne rejetée.
+
+  - title: "Transformations : normalisation, dérivation FCFA/kg, hachages"
+    milestone: m3
+    labels: ["type:feature", "area:etl", "role:B-dwh-etl", "priority:p0"]
+    body: |
+      **DoD** — Dates ISO, unités homogènes, prix convertis au taux de la date.
+
+  - title: "Chargement des dimensions puis des faits (transaction, upsert)"
+    milestone: m3
+    labels: ["type:feature", "area:etl", "role:B-dwh-etl", "priority:p0"]
+    body: |
+      **DoD** — `ON CONFLICT` sur la clé métier ; dimensions résolues avant les faits.
+
+  - title: "Journalisation etl.run_log, watermark et fichier_traite"
+    milestone: m3
+    labels: ["type:feature", "area:etl", "area:orchestration", "role:C-orchestration", "priority:p0"]
+    body: |
+      **DoD** — Chaque exécution tracée (statut, compteurs, filigranes avant/après).
+
+  - title: "Reprise sur incident (transaction, filigrane, idempotence)"
+    milestone: m3
+    labels: ["type:feature", "area:etl", "role:C-orchestration", "priority:p0"]
+    body: |
+      **Objectif** — Reproduire le run 4 : échec au milieu, relance sans doublon.
+
+      **DoD** — FAILED puis SUCCESS, filigrane inchangé après l'échec, zéro doublon.
+
+  - title: "Tests automatiques : qualité, SCD2, idempotence"
+    milestone: m3
+    labels: ["type:test", "area:quality", "role:C-orchestration", "priority:p1"]
+    body: |
+      **DoD** — Scénario runs 0→4 vérifié par assertions de comptage.
+
+  # ---------------------------- M4 -------------------------------------------
+  - title: "Extraction incrémentale par filigrane (livraison.updated_at)"
+    milestone: m4
+    labels: ["type:feature", "area:etl", "role:B-dwh-etl", "priority:p0"]
+    body: |
+      **DoD** — Recouvrement de 5 minutes ; seules les nouveautés/modifs sont lues.
+
+  - title: "Détection des modifications (hachage) et des suppressions (journal CDC)"
+    milestone: m4
+    labels: ["type:feature", "area:etl", "role:B-dwh-etl", "priority:p0"]
+    body: |
+      **Objectif** — Gérer nouvelles lignes, modifications et suppressions.
+
+      **DoD** — Suppression logique `est_supprime = TRUE`, journal `coop.cdc_journal`.
+
+  - title: "Scénario de démonstration runs 0→4 et comptages attendus"
+    milestone: m4
+    labels: ["type:docs", "type:test", "area:etl", "role:C-orchestration", "priority:p0"]
+    body: |
+      **DoD** — Tableau run par run avec les comptages attendus dans l'entrepôt.
+
+  - title: "DAG Airflow — planification nocturne (mécanisme A)"
+    milestone: m4
+    labels: ["type:feature", "area:orchestration", "role:C-orchestration", "priority:p0"]
+    body: |
+      **DoD** — DAG `0 2 * * *` : staging → qualité → dimensions → faits → ML/NLP.
+
+  - title: "DAG Airflow — capteur de fichier inbox (mécanisme B)"
+    milestone: m4
+    labels: ["type:feature", "area:orchestration", "role:C-orchestration", "priority:p0"]
+    body: |
+      **DoD** — Dépôt d'un `paiements_AAAAMMJJ.json` déclenche le DAG puis archivage.
+
+  - title: "(Option) Déclencheur de base + pg_notify (mécanisme C)"
+    milestone: m4
+    labels: ["type:feature", "area:orchestration", "role:C-orchestration", "priority:p2"]
+    body: |
+      **DoD** — Insertion dans `coop.livraison` vue comme déclenchement `EVENEMENT`.
+
+  # ---------------------------- M5 -------------------------------------------
+  - title: "Page 1 · Synthèse — indicateurs 1 à 5"
+    milestone: m5
+    labels: ["type:feature", "area:dwh", "area:bi", "role:D-ml-bi", "priority:p0"]
+    body: |
+      **Indicateurs** — 1 Tonnage collecté · 2 Prix moyen payé · 3 Taux de lots refusés · 4 Marge filière · 5 CA export.
+
+      **DoD** — 5 requêtes SQL + définitions formelles ; jamais de moyenne de moyennes.
+
+  - title: "Page 2 · Production et collecte — indicateurs 6 à 10"
+    milestone: m5
+    labels: ["type:feature", "area:dwh", "area:bi", "role:D-ml-bi", "priority:p0"]
+    body: |
+      **Indicateurs** — 6 Tonnage/région · 7 Tonnage/coopérative · 8 Rendement/ha · 9 Producteurs actifs · 10 Parcelles actives.
+
+  - title: "Page 3 · Qualité — indicateurs 11 à 15"
+    milestone: m5
+    labels: ["type:feature", "area:dwh", "area:bi", "role:D-ml-bi", "priority:p0"]
+    body: |
+      **Indicateurs** — 11 Humidité moyenne · 12 Grains défectueux · 13 Part grade 1 · 14 Lots refusés/coopérative · 15 Délai d'analyse.
+
+  - title: "Page 4 · Prix et finances — indicateurs 16 à 20"
+    milestone: m5
+    labels: ["type:feature", "area:dwh", "area:bi", "role:D-ml-bi", "priority:p0"]
+    body: |
+      **Indicateurs** — 16 Écart prix producteur/mondial · 17 Évolution mensuelle · 18 Mobile Money · 19 Délai de paiement · 20 Impact du change.
+
+  - title: "Page 5 · Logistique et export — indicateurs 21 à 25"
+    milestone: m5
+    labels: ["type:feature", "area:dwh", "area:bi", "role:D-ml-bi", "priority:p0"]
+    body: |
+      **Indicateurs** — 21 Délai champ→port · 22 Coût transport/t · 23 Pertes transport · 24 Conteneurs EVP · 25 Retards de chargement.
+
+  - title: "Indicateur d'actualité : date du dernier chargement"
+    milestone: m5
+    labels: ["type:feature", "area:bi", "role:D-ml-bi", "priority:p1"]
+    body: |
+      **DoD** — Requête sur `etl.run_log` affichée sur les 5 pages.
+
+  # ---------------------------- M6 -------------------------------------------
+  - title: "ML1 · Prévision des tonnages par région et campagne"
+    milestone: m6
+    labels: ["type:feature", "area:ml", "role:D-ml-bi", "priority:p0"]
+    body: |
+      **Objectif** — Anticiper les tonnages mensuels (modèle panel + météo décalée).
+
+      **DoD** — Sortie `ml.prevision_tonnage` + `ml.metrique_modele` (MAPE, WAPE, gain vs référence).
+
+  - title: "ML2 · Prédiction du rejet d'un lot"
+    milestone: m6
+    labels: ["type:feature", "area:ml", "role:D-ml-bi", "priority:p0"]
+    body: |
+      **Objectif** — Probabilité de rejet ; cible rare (~5 %), seuil sur précision-rappel.
+
+      **DoD** — Sortie `ml.score_rejet_lot` + matrice de confusion ; pas de fuite (pas de `grade`).
+
+  - title: "ML3 · Prévision du prix mondial et simulation de marge"
+    milestone: m6
+    labels: ["type:feature", "area:ml", "role:D-ml-bi", "priority:p0"]
+    body: |
+      **DoD** — Sorties `ml.prevision_prix` et `ml.scenario_marge` ; scénarios ±10 % prix, ±5 % change, +15 % transport.
+
+  - title: "NLP1 · Classification des observations qualité par défaut"
+    milestone: m6
+    labels: ["type:feature", "area:nlp", "role:D-ml-bi", "priority:p0"]
+    body: |
+      **Objectif** — TF-IDF + classifieur, **multi-label** (10–15 % multi-défauts).
+
+      **DoD** — Sortie `nlp.defaut_observation` + F1 macro, rappel par classe.
+
+  - title: "NLP2 · Extraction des clauses, dates et volumes des contrats"
+    milestone: m6
+    labels: ["type:feature", "area:nlp", "role:D-ml-bi", "priority:p0"]
+    body: |
+      **Objectif** — spaCy EntityRuler/Matcher ; gabarits de test **disjoints** de l'entraînement.
+
+      **DoD** — Sortie `nlp.contrat_extraction` + précision/rappel/F1 par entité.
+
+  - title: "Tables ml.* et nlp.* + métriques d'évaluation"
+    milestone: m6
+    labels: ["type:feature", "area:ml", "area:nlp", "role:D-ml-bi", "priority:p0"]
+    body: |
+      **DoD** — Calcul par lot planifié ; chaque modèle stocke ses métriques et sa date.
+
+  # ---------------------------- M7 -------------------------------------------
+  - title: "Metabase : connexion lecture seule, filtres communs et navigation"
+    milestone: m7
+    labels: ["type:feature", "area:bi", "role:D-ml-bi", "priority:p0"]
+    body: |
+      **DoD** — Campagne, produit, région, coopérative synchronisés ; onglets 1→5.
+
+  - title: "Page 1 · Synthèse (5 cartes, tendance, répartition, alertes)"
+    milestone: m7
+    labels: ["type:feature", "area:bi", "role:D-ml-bi", "priority:p0"]
+
+  - title: "Page 2 · Production et collecte (carte, tonnage, prévision ML1)"
+    milestone: m7
+    labels: ["type:feature", "area:bi", "role:D-ml-bi", "priority:p0"]
+
+  - title: "Page 3 · Qualité (humidité, refus, matrice de confusion, défauts NLP)"
+    milestone: m7
+    labels: ["type:feature", "area:bi", "role:D-ml-bi", "priority:p0"]
+
+  - title: "Page 4 · Prix et finances (prix, prévision ML3, Mobile Money, marge)"
+    milestone: m7
+    labels: ["type:feature", "area:bi", "role:D-ml-bi", "priority:p0"]
+
+  - title: "Page 5 · Logistique et export (corridors, coûts, clauses NLP2)"
+    milestone: m7
+    labels: ["type:feature", "area:bi", "role:D-ml-bi", "priority:p0"]
+
+  # ---------------------------- M8 -------------------------------------------
+  - title: "Dossier de conception complet"
+    milestone: m8
+    labels: ["type:docs", "area:docs", "priority:p0"]
+    body: |
+      **Contenu** — Besoins, matrice, modèle, plan des flux ETL, choix argumentés, limites.
+
+  - title: "README de démarrage (5 commandes) et captures"
+    milestone: m8
+    labels: ["type:docs", "area:docs", "priority:p1"]
+
+  - title: "Tests automatisés et intégration continue (lint + tests)"
+    milestone: m8
+    labels: ["type:test", "area:infra", "priority:p1"]
+
+  - title: "Support de soutenance et plan B de démonstration"
+    milestone: m8
+    labels: ["type:docs", "area:docs", "priority:p1"]
+    body: |
+      **DoD** — Vidéo courte + captures ; répétition chronométrée (20 min).
+
+  - title: "Revue croisée finale et répétition"
+    milestone: m8
+    labels: ["type:chore", "area:docs", "priority:p1"]

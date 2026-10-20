@@ -1,0 +1,58 @@
+services:
+  # ---------------------------------------------------------------------------
+  # Base SOURCE : simule le système d'information des coopératives
+  # ---------------------------------------------------------------------------
+  pg_source:
+    image: postgres:16
+    container_name: p9_pg_source
+    environment:
+      POSTGRES_DB: ${SRC_DB}
+      POSTGRES_USER: ${SRC_USER}
+      POSTGRES_PASSWORD: ${SRC_PASSWORD}
+    ports:
+      - "5433:5432"
+    volumes:
+      - ./sql/source:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${SRC_USER} -d ${SRC_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ---------------------------------------------------------------------------
+  # Base ENTREPÔT : schémas stg, dwh, etl, ml, nlp
+  # ---------------------------------------------------------------------------
+  pg_dwh:
+    image: postgres:16
+    container_name: p9_pg_dwh
+    environment:
+      POSTGRES_DB: ${DWH_DB}
+      POSTGRES_USER: ${DWH_USER}
+      POSTGRES_PASSWORD: ${DWH_PASSWORD}
+      READONLY_USER: ${DWH_READONLY_USER}
+      READONLY_PASSWORD: ${DWH_READONLY_PASSWORD}
+    ports:
+      - "5434:5432"
+    volumes:
+      - ./sql/dwh:/docker-entrypoint-initdb.d
+      - dwh_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DWH_USER} -d ${DWH_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ---------------------------------------------------------------------------
+  # Restitution : Metabase (connexion en lecture seule à pg_dwh)
+  # ---------------------------------------------------------------------------
+  metabase:
+    image: metabase/metabase:latest
+    container_name: p9_metabase
+    ports:
+      - "3000:3000"
+    depends_on:
+      pg_dwh:
+        condition: service_healthy
+
+volumes:
+  dwh_data:

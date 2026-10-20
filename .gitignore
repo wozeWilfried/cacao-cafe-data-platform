@@ -1,0 +1,37 @@
+# Secrets et jetons
+.env
+.env.*
+!.env.example
+token
+*.token
+
+# Données volumineuses / générées (scripts versionnés, pas les données)
+data/inbox/*
+data/archive/*
+data/quarantaine/*
+data/reference/*
+data/cache/*
+projet9-cacao-cafe/data/inbox/*
+projet9-cacao-cafe/data/archive/*
+projet9-cacao-cafe/data/quarantaine/*
+projet9-cacao-cafe/data/reference/*
+projet9-cacao-cafe/data/cache/*
+!data/*/.gitkeep
+
+# Secrets du sous-projet
+projet9-cacao-cafe/.env
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.ipynb_checkpoints/
+.pytest_cache/
+*.parquet
+*.pkl
+
+# Outils / OS
+.DS_Store
+.idea/
+.vscode/

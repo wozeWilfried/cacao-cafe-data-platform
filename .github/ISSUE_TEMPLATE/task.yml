@@ -1,0 +1,53 @@
+name: Tâche
+description: Décrire une tâche, un livrable ou une fonctionnalité du Projet 9
+title: "[Tâche] "
+labels: ["type:feature"]
+body:
+  - type: textarea
+    id: objectif
+    attributes:
+      label: Objectif
+      description: Que cherche-t-on à obtenir et pourquoi ?
+    validations:
+      required: true
+
+  - type: textarea
+    id: taches
+    attributes:
+      label: Tâches
+      description: Liste d'actions concrètes à réaliser.
+      value: |
+        - [ ] 
+        - [ ] 
+        - [ ] 
+    validations:
+      required: true
+
+  - type: textarea
+    id: dod
+    attributes:
+      label: Définition de terminé (DoD)
+      description: Comment saura-t-on que c'est fini et vérifié ?
+      placeholder: "Ex. : 300 000 lignes en base, comptage affiché, test automatique vert."
+    validations:
+      required: true
+
+  - type: input
+    id: dependances
+    attributes:
+      label: Dépendances
+      description: Issues ou étapes dont celle-ci dépend (facultatif).
+    validations:
+      required: false
+
+  - type: dropdown
+    id: role
+    attributes:
+      label: Rôle
+      options:
+        - A · Sources et génération
+        - B · Modèle et ETL
+        - C · Orchestration et qualité
+        - D · ML, NLP et BI
+    validations:
+      required: false

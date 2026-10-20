@@ -1,0 +1,1 @@
+"""Package des générateurs de données (python -m generate.<module>)."""

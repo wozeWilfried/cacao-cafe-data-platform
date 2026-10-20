@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Guide du projet 9
+    url: https://github.com/wozeWilfried/cacao-cafe-data-platform
+    about: Reportez-vous au guide et au dossier de conception avant d'ouvrir une issue.

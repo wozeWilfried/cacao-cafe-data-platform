@@ -1,0 +1,50 @@
+name: Anomalie
+description: Signaler un dysfonctionnement (ETL, données, modèle, tableau de bord)
+title: "[Bug] "
+labels: ["type:bug"]
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: Que se passe-t-il ? Que devrait-il se passer ?
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Étapes de reproduction
+      value: |
+        1. 
+        2. 
+        3. 
+    validations:
+      required: true
+
+  - type: input
+    id: run_id
+    attributes:
+      label: Run / source concerné
+      description: run_id dans etl.run_log, nom de source, page de tableau de bord.
+    validations:
+      required: false
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Journaux / captures
+      render: shell
+    validations:
+      required: false
+
+  - type: dropdown
+    id: priorite
+    attributes:
+      label: Priorité
+      options:
+        - "priority:p1"
+        - "priority:p2"
+        - "priority:p0"
+    validations:
+      required: true
