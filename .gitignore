@@ -16,6 +16,7 @@ projet9-cacao-cafe/data/archive/*
 projet9-cacao-cafe/data/quarantaine/*
 projet9-cacao-cafe/data/reference/*
 projet9-cacao-cafe/data/cache/*
+
 !data/*/.gitkeep
 
 # Secrets du sous-projet

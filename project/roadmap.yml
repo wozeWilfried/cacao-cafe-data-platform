@@ -66,6 +66,9 @@ completed:
   - "Générateur des paiements Mobile Money (280 000, JSON par jour)"
   - "Générateurs complémentaires : contrats XML (+XSD), intrants Excel, trafic portuaire CSV"
   - "Collecte et cache des 7 sources publiques + fichiers de repli"
+  - "DDL des dimensions (Type 1 et 2) et de dim_date"
+  - "DDL des 9 tables de faits, contraintes et index"
+  - "Matrice processus × dimensions et justification des grains"
 
 # -----------------------------------------------------------------------------
 # ISSUES
