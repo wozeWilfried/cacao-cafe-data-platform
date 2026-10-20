@@ -69,6 +69,13 @@ completed:
   - "DDL des dimensions (Type 1 et 2) et de dim_date"
   - "DDL des 9 tables de faits, contraintes et index"
   - "Matrice processus × dimensions et justification des grains"
+  - "Couche de staging (stg.*) avec traçabilité"
+  - "10 règles de qualité et table etl.rejet"
+  - "Transformations : normalisation, dérivation FCFA/kg, hachages"
+  - "Chargement des dimensions puis des faits (transaction, upsert)"
+  - "Journalisation etl.run_log, watermark et fichier_traite"
+  - "Reprise sur incident (transaction, filigrane, idempotence)"
+  - "Historisation SCD2 de producteur et coopérative"
 
 # -----------------------------------------------------------------------------
 # ISSUES
